@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- Quyền cho Foreground Service -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK" /> <!-- ĐÃ THÊM -->
+
+    <!-- Quyền truy cập media cho Android 13+ -->
+    <uses-permission android:name="android.permission.READ_MEDIA_AUDIO" />
+    <!-- Quyền này vẫn cần cho các phiên bản Android cũ hơn -->
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+
+    <!-- Quyền READ_PHONE_STATE rất nhạy cảm và có thể không cần thiết, cân nhắc xóa nếu không dùng -->
+    <uses-permission android:name="android.permission.READ_PHONE_STATE" />
+
+    <application
+        android:allowBackup="true"
+        android:hardwareAccelerated="false"
+        android:icon="@mipmap/ic_launcher"
+        android:label="@string/app_name"
+        android:roundIcon="@mipmap/ic_launcher_round"
+        android:supportsRtl="true"
+        android:largeHeap="true"
+        android:name=".ApplicationClass"
+        android:theme="@style/Theme.WeTunes">
+        <activity android:name=".AlbumDetails"
+            android:parentActivityName=".MainActivity" />
+        <activity android:name=".PlayerActivity"
+            android:parentActivityName=".MainActivity" />
+        <activity android:name=".MainActivity"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+        <service android:name=".MusicService"
+            android:enabled="true"
+            android:foregroundServiceType="mediaPlayback"/>
+
+        <receiver android:name=".NotificationReceiver"
+            android:enabled="true"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="actionprevious"/>
+                <action android:name="actionnext"/>
+                <action android:name="actionplay"/>
+            </intent-filter>
+        </receiver>
+    </application>
+
+</manifest>
