@@ -41,6 +41,16 @@
             android:textColor="@color/colorAccent"
             android:textSize="18sp"
             android:textStyle="bold" />
+
+        <ImageView
+            android:id="@+id/sleep_timer_btn"
+            android:layout_width="30dp"
+            android:layout_height="30dp"
+            android:src="@drawable/ic_timer"
+            android:layout_alignParentEnd="true"
+            android:layout_centerVertical="true"
+            android:layout_marginEnd="15dp"
+            app:tint="@color/colorAccent" />
     </RelativeLayout>
 
     <!-- Ảnh bìa album -->

@@ -1,6 +1,7 @@
 package com.thapamusic.wetunes;
 
 import androidx.annotation.Nullable;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.palette.graphics.Palette;
 
@@ -28,6 +29,7 @@ import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.SeekBar;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
@@ -41,7 +43,8 @@ public class PlayerActivity extends AppCompatActivity implements ActionPlaying, 
 
     // Views
     TextView song_name, artist_name, duration_played, duration_total, album_name, textNowplaying;
-    ImageView cover_art, nextBtn, prevBtn, backBtn, shuffleBtn, repeatBtn;
+    // Trong PlayerActivity.java
+    ImageView cover_art, nextBtn, prevBtn, backBtn, shuffleBtn, repeatBtn, sleepTimerBtn;
     FloatingActionButton playPauseBtn;
     SeekBar seekBar;
 
@@ -256,6 +259,7 @@ public class PlayerActivity extends AppCompatActivity implements ActionPlaying, 
             repeatBoolean = !repeatBoolean;
             repeatBtn.setImageResource(repeatBoolean ? R.drawable.ic_repeat_on : R.drawable.ic_repeat_off);
         });
+        sleepTimerBtn.setOnClickListener(v -> showTimerDialog());
     }
 
     private void initViews() {
@@ -273,6 +277,7 @@ public class PlayerActivity extends AppCompatActivity implements ActionPlaying, 
         playPauseBtn = findViewById(R.id.play_pause);
         seekBar = findViewById(R.id.seekBar);
         textNowplaying = findViewById(R.id.nowplaing); // Sửa lỗi: Thêm khai báo
+        sleepTimerBtn = findViewById(R.id.sleep_timer_btn);
     }
 
     private void metaData(Uri uri) {
@@ -367,5 +372,32 @@ public class PlayerActivity extends AppCompatActivity implements ActionPlaying, 
             }
         });
         imageView.startAnimation(animOut);
+    }
+    private void showTimerDialog() {
+        // Chỉ hiển thị dialog nếu service đã được kết nối
+        if (musicService == null) {
+            Toast.makeText(this, "Dịch vụ chưa sẵn sàng", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        final String[] timerOptions = {"15 phút", "30 phút", "60 phút", "Tắt hẹn giờ"};
+        // Chuyển đổi phút sang mili-giây
+        final long[] timerValues = {15 * 60 * 1000, 30 * 60 * 1000, 60 * 60 * 1000, 0};
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("Hẹn giờ tắt nhạc");
+        builder.setItems(timerOptions, (dialog, which) -> {
+            long durationInMillis = timerValues[which];
+            // Gọi phương thức trong service để đặt hẹn giờ
+            musicService.setSleepTimer(durationInMillis);
+
+            // Thông báo cho người dùng
+            if (durationInMillis > 0) {
+                Toast.makeText(this, "Nhạc sẽ tự tắt sau " + timerOptions[which], Toast.LENGTH_SHORT).show();
+            } else {
+                Toast.makeText(this, "Đã tắt hẹn giờ", Toast.LENGTH_SHORT).show();
+            }
+        });
+        builder.create().show();
     }
 }

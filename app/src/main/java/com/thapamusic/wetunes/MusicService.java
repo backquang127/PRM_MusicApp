@@ -15,6 +15,8 @@ import android.support.v4.media.session.MediaSessionCompat;
 import android.util.Log;
 import androidx.annotation.Nullable;
 import androidx.core.app.NotificationCompat;
+import android.os.Handler;
+
 import java.io.IOException;
 import java.util.ArrayList;
 
@@ -33,7 +35,8 @@ public class MusicService extends Service implements MediaPlayer.OnCompletionLis
     int position = -1;
     ActionPlaying actionPlaying;
     MediaSessionCompat mediaSessionCompat;
-
+    private final Handler timerHandler = new Handler();
+    private Runnable sleepTimerRunnable;
     @Override
     public void onCreate() {
         super.onCreate();
@@ -213,4 +216,27 @@ public class MusicService extends Service implements MediaPlayer.OnCompletionLis
     void playPauseBtnClicked() { if (actionPlaying != null) actionPlaying.playPauseBtnClicked(); }
     void nextBtnClicked() { if (actionPlaying != null) actionPlaying.nextBtnClicked(); }
     void prevBtnClicked() { if (actionPlaying != null) actionPlaying.prevBtnClicked(); }
+
+    public void setSleepTimer(long milliseconds) {
+        // Hủy bỏ bất kỳ bộ hẹn giờ nào đang chạy trước đó
+        if (sleepTimerRunnable != null) {
+            timerHandler.removeCallbacks(sleepTimerRunnable);
+        }
+
+        // Nếu người dùng chọn một khoảng thời gian (không phải "Tắt hẹn giờ")
+        if (milliseconds > 0) {
+            // Tạo một hành động mới sẽ được thực thi khi hết giờ
+            sleepTimerRunnable = () -> {
+                // Hành động khi hết giờ: Dừng nhạc và tự hủy service
+                if (isPlaying()) {
+                    pause();
+                    // Bạn có thể gửi broadcast để báo cho UI cập nhật nút play/pause nếu muốn
+                }
+                stopSelf(); // Lệnh để service tự dừng lại
+            };
+
+            // Bắt đầu đếm ngược
+            timerHandler.postDelayed(sleepTimerRunnable, milliseconds);
+        }
+    }
 }
