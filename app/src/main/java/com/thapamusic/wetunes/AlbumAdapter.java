@@ -19,14 +19,19 @@ public class AlbumAdapter extends RecyclerView.Adapter<AlbumAdapter.MyHolder> {
 
     private final Context mContext;
     // Chỉ cần danh sách các album duy nhất
-    private final ArrayList<MusicFiles> albumFiles;
+    private ArrayList<MusicFiles> albumFiles;
 
     // **SỬA LỖI**: Khôi phục lại constructor 2 tham số ban đầu
     public AlbumAdapter(Context mContext, ArrayList<MusicFiles> albumFiles) {
         this.mContext = mContext;
         this.albumFiles = albumFiles;
     }
-
+    View view;
+    void updateList(ArrayList<MusicFiles> newList) {
+        albumFiles = new ArrayList<>();
+        albumFiles.addAll(newList);
+        notifyDataSetChanged(); // Báo cho RecyclerView biết dữ liệu đã thay đổi và cần cập nhật UI
+    }
     @NonNull
     @Override
     public MyHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {

@@ -11,10 +11,6 @@ import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentPagerAdapter;
 import androidx.viewpager.widget.ViewPager;
 
-import android.util.Log;
-import android.view.Menu;
-import android.view.MenuItem;
-import android.widget.Toast;
 import android.Manifest;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
@@ -23,8 +19,10 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.provider.MediaStore;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.Toast;
 
 import com.google.android.material.tabs.TabLayout;
 
@@ -36,16 +34,18 @@ public class MainActivity extends AppCompatActivity implements SearchView.OnQuer
     public static final int REQUEST_CODE = 1;
     private static final String MY_SORT_PREF = "SortOrder";
 
-    // Dữ liệu là của riêng MainActivity, không còn static
-    private ArrayList<MusicFiles> musicFilesList = new ArrayList<>();
-    private ArrayList<MusicFiles> albumsList = new ArrayList<>();
+    // --- SỬA LỖI: CHUYỂN CÁC DANH SÁCH THÀNH STATIC ---
+    // Để các Fragment có thể truy cập và hiển thị dữ liệu
+    public static ArrayList<MusicFiles> musicFiles = new ArrayList<>();
+    public static ArrayList<MusicFiles> albums = new ArrayList<>();
 
-    // Các biến static cho trạng thái có thể tạm chấp nhận, nhưng tốt nhất nên nằm trong Service.
+    // Các biến trạng thái
     static boolean shuffleBoolean = false;
     static boolean repeatBoolean = false;
 
     private ViewPager viewPager;
     private ViewPagerAdapter viewPagerAdapter;
+    private TabLayout tabLayout;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -65,6 +65,7 @@ public class MainActivity extends AppCompatActivity implements SearchView.OnQuer
         if (ContextCompat.checkSelfPermission(this, permissionsToRequest[0]) != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(this, permissionsToRequest, REQUEST_CODE);
         } else {
+            // Đã có quyền, tiến hành tải nhạc và khởi tạo giao diện
             loadAllAudio();
             initViewPager();
         }
@@ -78,30 +79,164 @@ public class MainActivity extends AppCompatActivity implements SearchView.OnQuer
                 loadAllAudio();
                 initViewPager();
             } else {
-                // Có thể hiển thị thông báo cho người dùng biết tại sao cần quyền
-                ActivityCompat.requestPermissions(this, permissions, REQUEST_CODE);
+                Toast.makeText(this, "Cần cấp quyền để ứng dụng hoạt động!", Toast.LENGTH_LONG).show();
+                // Có thể đóng ứng dụng hoặc yêu cầu lại quyền
             }
         }
     }
 
     private void initViewPager() {
         viewPager = findViewById(R.id.viewpager);
-        TabLayout tabLayout = findViewById(R.id.tab_layout);
+        tabLayout = findViewById(R.id.tab_layout);
         viewPagerAdapter = new ViewPagerAdapter(getSupportFragmentManager());
 
-        // Truyền dữ liệu cho Fragment một cách an toàn qua newInstance
-        viewPagerAdapter.addFragment(SongsFragment.newInstance(musicFilesList), "Songs");
-        viewPagerAdapter.addFragment(AlbumFragment.newInstance(albumsList), "Albums");
+        // Thêm các Fragment vào Adapter
+        viewPagerAdapter.addFragment(new FavoritesFragment(), "Yêu thích");
+        viewPagerAdapter.addFragment(new SongsFragment(), "Bài hát");
+        viewPagerAdapter.addFragment(new AlbumFragment(), "Album");
 
         viewPager.setAdapter(viewPagerAdapter);
         tabLayout.setupWithViewPager(viewPager);
     }
 
-    // Interface để giao tiếp với các Fragment có khả năng tìm kiếm
+    // --- SỬA LỖI: Phương thức loadAllAudio được cập nhật để dùng biến static ---
+    private void loadAllAudio() {
+        SharedPreferences preferences = getSharedPreferences(MY_SORT_PREF, MODE_PRIVATE);
+        String sortOrder = preferences.getString("sorting", "sortByTitle");
+
+        // Luôn xóa dữ liệu cũ trước khi quét lại
+        musicFiles.clear();
+        albums.clear();
+
+        ArrayList<String> duplicateAlbums = new ArrayList<>();
+
+        String order = null;
+        switch (sortOrder) {
+            case "sortByDate":
+                order = MediaStore.Audio.Media.DATE_ADDED + " DESC";
+                break;
+            case "sortBySize":
+                order = MediaStore.Audio.Media.SIZE + " DESC";
+                break;
+            default: // Mặc định là "sortByTitle"
+                order = MediaStore.Audio.Media.TITLE + " ASC";
+                break;
+        }
+
+        Uri uri = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI;
+        String[] projection = {
+                MediaStore.Audio.Media.ALBUM,
+                MediaStore.Audio.Media.TITLE,
+                MediaStore.Audio.Media.DURATION,
+                MediaStore.Audio.Media.DATA,
+                MediaStore.Audio.Media.ARTIST,
+                MediaStore.Audio.Media._ID
+        };
+
+        try (Cursor cursor = getContentResolver().query(uri, projection, null, null, order)) {
+            if (cursor != null) {
+                while (cursor.moveToNext()) {
+                    String album = cursor.getString(0);
+                    String title = cursor.getString(1);
+                    String duration = cursor.getString(2);
+                    String path = cursor.getString(3);
+                    String artist = cursor.getString(4);
+                    String id = cursor.getString(5);
+
+                    MusicFiles musicFile = new MusicFiles(path, title, artist, album, duration, id);
+
+                    // Thêm vào danh sách tất cả bài hát
+                    musicFiles.add(musicFile);
+
+                    // Thêm vào danh sách album (không trùng lặp)
+                    if (album != null && !duplicateAlbums.contains(album)) {
+                        albums.add(musicFile);
+                        duplicateAlbums.add(album);
+                    }
+                }
+            }
+        }
+        Log.d("LoadAudio", "Đã quét xong: " + musicFiles.size() + " bài hát, " + albums.size() + " albums.");
+    }
+
+    // --- CÁC PHƯƠNG THỨC MENU ĐÃ ĐƯỢC CẬP NHẬT ---
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.main_menu, menu);
+        MenuItem menuItem = menu.findItem(R.id.search_option);
+
+        if (menuItem != null) {
+            SearchView searchView = (SearchView) menuItem.getActionView();
+            if (searchView != null) {
+                searchView.setOnQueryTextListener(this);
+            }
+        }
+        return super.onCreateOptionsMenu(menu);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
+        int itemId = item.getItemId();
+
+        if (itemId == R.id.action_refresh) {
+            refreshMusicList();
+            return true;
+        }
+
+        SharedPreferences.Editor editor = getSharedPreferences(MY_SORT_PREF, MODE_PRIVATE).edit();
+        boolean shouldRecreate = false;
+
+        if (itemId == R.id.by_title) {
+            editor.putString("sorting", "sortByTitle");
+            shouldRecreate = true;
+        } else if (itemId == R.id.by_date) {
+            editor.putString("sorting", "sortByDate");
+            shouldRecreate = true;
+        } else if (itemId == R.id.by_size) {
+            editor.putString("sorting", "sortBySize");
+            shouldRecreate = true;
+        }
+
+        if (shouldRecreate) {
+            editor.apply();
+            this.recreate();
+            return true;
+        }
+
+        return super.onOptionsItemSelected(item);
+    }
+
+    private void refreshMusicList() {
+        Log.d("Refresh", "Bắt đầu làm mới danh sách nhạc.");
+        loadAllAudio();
+        // Khởi tạo lại ViewPager để cập nhật tất cả các Fragment
+        initViewPager();
+        Toast.makeText(this, "Đã làm mới danh sách nhạc!", Toast.LENGTH_SHORT).show();
+    }
+
+    // --- CÁC PHƯƠNG THỨC KHÁC GIỮ NGUYÊN ---
+
+    @Override
+    public boolean onQueryTextSubmit(String query) { return false; }
+
+    @Override
+    public boolean onQueryTextChange(String newText) {
+        if (viewPager != null && viewPagerAdapter != null) {
+            Fragment currentFragment = viewPagerAdapter.getItem(viewPager.getCurrentItem());
+            if (currentFragment instanceof SearchableFragment) {
+                ((SearchableFragment) currentFragment).onSearchQuery(newText);
+            }
+        }
+        return true;
+    }
+
+    // Interface để giao tiếp với các Fragment
     public interface SearchableFragment {
         void onSearchQuery(String query);
     }
 
+    // ViewPagerAdapter không cần newInstance nữa vì các Fragment sẽ tự lấy dữ liệu từ biến static
     public static class ViewPagerAdapter extends FragmentPagerAdapter {
         private final List<Fragment> fragments = new ArrayList<>();
         private final List<String> titles = new ArrayList<>();
@@ -132,138 +267,4 @@ public class MainActivity extends AppCompatActivity implements SearchView.OnQuer
             return titles.get(position);
         }
     }
-
-    private void loadAllAudio() {
-        SharedPreferences preferences = getSharedPreferences(MY_SORT_PREF, MODE_PRIVATE);
-        String sortOrder = preferences.getString("sorting", "sortByName");
-
-        ArrayList<String> duplicateAlbums = new ArrayList<>();
-        musicFilesList.clear();
-        albumsList.clear();
-
-        String order = null;
-        switch (sortOrder) {
-            case "sortByTitle":
-                order = MediaStore.Audio.Media.TITLE + " ASC";
-                break;
-            case "sortByDate":
-                order = MediaStore.Audio.Media.DATE_ADDED + " DESC";
-                break;
-            case "sortBySize":
-                order = MediaStore.Audio.Media.SIZE + " DESC";
-                break;
-            default:
-                order = MediaStore.Audio.Media.TITLE + " ASC"; // Mặc định
-                break;
-        }
-
-        Uri uri = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI;
-        String[] projection = {
-                MediaStore.Audio.Media.ALBUM,
-                MediaStore.Audio.Media.TITLE,
-                MediaStore.Audio.Media.DURATION,
-                MediaStore.Audio.Media.DATA,
-                MediaStore.Audio.Media.ARTIST,
-                MediaStore.Audio.Media._ID
-        };
-
-        try (Cursor cursor = getContentResolver().query(uri, projection, null, null, order)) {
-            if (cursor != null) {
-                while (cursor.moveToNext()) {
-                    String album = cursor.getString(0);
-                    String title = cursor.getString(1);
-                    String duration = cursor.getString(2);
-                    String path = cursor.getString(3);
-                    String artist = cursor.getString(4);
-                    String id = cursor.getString(5);
-
-                    MusicFiles musicFile = new MusicFiles(path, title, artist, album, duration, id);
-                    musicFilesList.add(musicFile);
-
-                    if (album != null && !duplicateAlbums.contains(album)) {
-                        albumsList.add(musicFile);
-                        duplicateAlbums.add(album);
-                    }
-                }
-            }
-        }
-    }
-
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        // Luôn "thổi phồng" file menu chính của bạn
-        getMenuInflater().inflate(R.menu.main_menu, menu);
-
-        // Tìm item tìm kiếm
-        MenuItem menuItem = menu.findItem(R.id.search_option);
-
-        // --- KIỂM TRA NULL ---
-        // Luôn kiểm tra xem item có tồn tại không trước khi sử dụng
-        if (menuItem != null) {
-            SearchView searchView = (SearchView) menuItem.getActionView();
-            if (searchView != null) {
-                searchView.setOnQueryTextListener(this);
-            }
-        }
-
-        return super.onCreateOptionsMenu(menu);
-    }
-
-
-    @Override
-    public boolean onQueryTextSubmit(String query) { return false; }
-
-    @Override
-    public boolean onQueryTextChange(String newText) {
-        if (viewPager != null && viewPagerAdapter != null) {
-            Fragment currentFragment = viewPagerAdapter.getItem(viewPager.getCurrentItem());
-            if (currentFragment instanceof SearchableFragment) {
-                ((SearchableFragment) currentFragment).onSearchQuery(newText);
-            }
-        }
-        return true;
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
-        SharedPreferences.Editor editor = getSharedPreferences(MY_SORT_PREF, MODE_PRIVATE).edit();
-        int itemId = item.getItemId();
-
-        if (itemId == R.id.action_refresh) {
-            refreshMusicList();
-            return true;
-        }
-        // Logic sắp xếp không thay đổi
-        else if (itemId == R.id.by_title) {
-            editor.putString("sorting", "sortByTitle");
-            editor.apply();
-            this.recreate();
-        } else if (itemId == R.id.by_date) {
-            editor.putString("sorting", "sortByDate");
-            editor.apply();
-            this.recreate();
-        } else if (itemId == R.id.by_size) {
-            editor.putString("sorting", "sortBySize");
-            editor.apply();
-            this.recreate();
-        }
-
-        return super.onOptionsItemSelected(item);
-    }
-
-    private void refreshMusicList() {
-        // Log để gỡ lỗi
-        Log.d("Refresh", "Bắt đầu làm mới danh sách nhạc.");
-
-        // Quét lại toàn bộ nhạc trên thiết bị
-        loadAllAudio();
-
-        // "Khởi động lại" ViewPager để nó vẽ lại các fragment với dữ liệu mới.
-        // Đây là cách đơn giản và hiệu quả nhất vì nó sẽ tạo lại các Fragment
-        // với danh sách nhạc đã được cập nhật.
-        initViewPager();
-
-        Toast.makeText(this, "Đã làm mới danh sách nhạc!", Toast.LENGTH_SHORT).show();
-    }
-
 }

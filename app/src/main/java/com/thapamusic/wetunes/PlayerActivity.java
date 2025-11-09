@@ -51,7 +51,7 @@ public class PlayerActivity extends AppCompatActivity implements ActionPlaying, 
     // Views
     TextView song_name, artist_name, duration_played, duration_total, album_name, textNowplaying;
     // Trong PlayerActivity.java
-    ImageView cover_art, nextBtn, prevBtn, backBtn, shuffleBtn, repeatBtn, sleepTimerBtn,lyricsBtn;
+    ImageView cover_art, nextBtn, prevBtn, backBtn, shuffleBtn, repeatBtn, sleepTimerBtn,lyricsBtn,favoriteBtn;
     FloatingActionButton playPauseBtn;
     SeekBar seekBar;
 
@@ -72,6 +72,9 @@ public class PlayerActivity extends AppCompatActivity implements ActionPlaying, 
     private boolean repeatBoolean = false;
     ScrollView lyricsScrollView; // Thêm ScrollView cho lời bài hát
     TextView lyricsTextView; // Thêm TextView cho lời bài hát
+    private FavoritesManager favoritesManager;
+    private boolean isFavorite = false;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -99,6 +102,7 @@ public class PlayerActivity extends AppCompatActivity implements ActionPlaying, 
             @Override
             public void onStopTrackingTouch(SeekBar seekBar) {}
         });
+        favoritesManager = new FavoritesManager(this);
     }
 
     private void getIntentData() {
@@ -181,6 +185,7 @@ public class PlayerActivity extends AppCompatActivity implements ActionPlaying, 
         if (lyricsScrollView.getVisibility() == View.VISIBLE) {
             lyricsScrollView.setVisibility(View.GONE);
         }
+        updateUIFromService();
     }
 
     @Override
@@ -193,6 +198,7 @@ public class PlayerActivity extends AppCompatActivity implements ActionPlaying, 
         if (lyricsScrollView.getVisibility() == View.VISIBLE) {
             lyricsScrollView.setVisibility(View.GONE);
         }
+        updateUIFromService();
     }
 
     private void updateUIFromService() {
@@ -212,6 +218,20 @@ public class PlayerActivity extends AppCompatActivity implements ActionPlaying, 
 
         metaData(uri);
         updatePlayPauseButton();
+        updateFavoriteButtonStatus();
+    }
+
+    private void updateFavoriteButtonStatus() {
+        if (listSongs.isEmpty() || position == -1) return;
+
+        String currentSongId = listSongs.get(position).getId();
+        isFavorite = favoritesManager.isFavorite(currentSongId);
+
+        if (isFavorite) {
+            favoriteBtn.setImageResource(R.drawable.ic_favorite_filled);
+        } else {
+            favoriteBtn.setImageResource(R.drawable.ic_favorite_border);
+        }
     }
 
     private void updatePlayPauseButton() {
@@ -280,6 +300,25 @@ public class PlayerActivity extends AppCompatActivity implements ActionPlaying, 
                 fetchLyrics();
             }
         });
+
+        favoriteBtn.setOnClickListener(v -> {
+            if (listSongs.isEmpty() || position == -1) return;
+
+            String currentSongId = listSongs.get(position).getId();
+            if (isFavorite) {
+                // Nếu đang là yêu thích -> Bỏ yêu thích
+                favoritesManager.removeFavorite(currentSongId);
+                favoriteBtn.setImageResource(R.drawable.ic_favorite_border);
+                Toast.makeText(this, "Đã xóa khỏi Yêu thích", Toast.LENGTH_SHORT).show();
+            } else {
+                // Nếu chưa yêu thích -> Thêm vào yêu thích
+                favoritesManager.addFavorite(currentSongId);
+                favoriteBtn.setImageResource(R.drawable.ic_favorite_filled);
+                Toast.makeText(this, "Đã thêm vào Yêu thích", Toast.LENGTH_SHORT).show();
+            }
+            // Cập nhật lại trạng thái
+            isFavorite = !isFavorite;
+        });
     }
 
     private void initViews() {
@@ -303,6 +342,7 @@ public class PlayerActivity extends AppCompatActivity implements ActionPlaying, 
         lyricsBtn = findViewById(R.id.lyrics_btn);
         lyricsScrollView = findViewById(R.id.lyrics_scrollview);
         lyricsTextView = findViewById(R.id.lyrics_textview);
+        favoriteBtn = findViewById(R.id.favorite_btn);
     }
 
     private void metaData(Uri uri) {
