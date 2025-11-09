@@ -11,6 +11,10 @@ import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentPagerAdapter;
 import androidx.viewpager.widget.ViewPager;
 
+import android.util.Log;
+import android.view.Menu;
+import android.view.MenuItem;
+import android.widget.Toast;
 import android.Manifest;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
@@ -21,7 +25,9 @@ import android.os.Bundle;
 import android.provider.MediaStore;
 import android.view.Menu;
 import android.view.MenuItem;
+
 import com.google.android.material.tabs.TabLayout;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -185,12 +191,24 @@ public class MainActivity extends AppCompatActivity implements SearchView.OnQuer
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        getMenuInflater().inflate(R.menu.search, menu);
+        // Luôn "thổi phồng" file menu chính của bạn
+        getMenuInflater().inflate(R.menu.main_menu, menu);
+
+        // Tìm item tìm kiếm
         MenuItem menuItem = menu.findItem(R.id.search_option);
-        SearchView searchView = (SearchView) menuItem.getActionView();
-        searchView.setOnQueryTextListener(this);
+
+        // --- KIỂM TRA NULL ---
+        // Luôn kiểm tra xem item có tồn tại không trước khi sử dụng
+        if (menuItem != null) {
+            SearchView searchView = (SearchView) menuItem.getActionView();
+            if (searchView != null) {
+                searchView.setOnQueryTextListener(this);
+            }
+        }
+
         return super.onCreateOptionsMenu(menu);
     }
+
 
     @Override
     public boolean onQueryTextSubmit(String query) { return false; }
@@ -209,18 +227,43 @@ public class MainActivity extends AppCompatActivity implements SearchView.OnQuer
     @Override
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
         SharedPreferences.Editor editor = getSharedPreferences(MY_SORT_PREF, MODE_PRIVATE).edit();
-
         int itemId = item.getItemId();
-        if (itemId == R.id.by_title) {
+
+        if (itemId == R.id.action_refresh) {
+            refreshMusicList();
+            return true;
+        }
+        // Logic sắp xếp không thay đổi
+        else if (itemId == R.id.by_title) {
             editor.putString("sorting", "sortByTitle");
+            editor.apply();
+            this.recreate();
         } else if (itemId == R.id.by_date) {
             editor.putString("sorting", "sortByDate");
+            editor.apply();
+            this.recreate();
         } else if (itemId == R.id.by_size) {
             editor.putString("sorting", "sortBySize");
+            editor.apply();
+            this.recreate();
         }
-        editor.apply();
-        this.recreate(); // Khởi động lại Activity để áp dụng sắp xếp mới
 
         return super.onOptionsItemSelected(item);
     }
+
+    private void refreshMusicList() {
+        // Log để gỡ lỗi
+        Log.d("Refresh", "Bắt đầu làm mới danh sách nhạc.");
+
+        // Quét lại toàn bộ nhạc trên thiết bị
+        loadAllAudio();
+
+        // "Khởi động lại" ViewPager để nó vẽ lại các fragment với dữ liệu mới.
+        // Đây là cách đơn giản và hiệu quả nhất vì nó sẽ tạo lại các Fragment
+        // với danh sách nhạc đã được cập nhật.
+        initViewPager();
+
+        Toast.makeText(this, "Đã làm mới danh sách nhạc!", Toast.LENGTH_SHORT).show();
+    }
+
 }

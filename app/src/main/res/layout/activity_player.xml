@@ -51,6 +51,20 @@
             android:layout_centerVertical="true"
             android:layout_marginEnd="15dp"
             app:tint="@color/colorAccent" />
+
+
+        <!-- SỬA LỖI: Thêm nút Lyrics vào -->
+        <ImageView
+            android:id="@+id/lyrics_btn"
+            android:layout_width="30dp"
+            android:layout_height="30dp"
+            android:src="@drawable/ic_lyrics"
+            android:layout_toStartOf="@id/sleep_timer_btn"
+            android:layout_centerVertical="true"
+            android:layout_marginEnd="15dp"
+            app:tint="@color/colorAccent"
+            android:contentDescription="@string/lyrics_button"/>
+
     </RelativeLayout>
 
     <!-- Ảnh bìa album -->
@@ -62,57 +76,13 @@
         android:layout_centerHorizontal="true"
         android:layout_marginTop="50dp"
         android:scaleType="centerCrop"
-        android:src="@drawable/musicicon" />
+        android:src="@drawable/musicicon"
+        android:contentDescription="@string/album_art" />
 
-    <!-- Tên bài hát và nghệ sĩ -->
-    <TextView
-        android:id="@+id/song_name"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_below="@id/cover_art"
-        android:layout_marginStart="32dp"
-        android:layout_marginTop="20dp"
-        android:layout_marginEnd="32dp"
-        android:ellipsize="end"
-        android:gravity="center_horizontal"
-        android:maxLines="1"
-        android:text="Song Name"
-        android:textColor="@color/colorAccent"
-        android:textSize="22sp"
-        android:textStyle="bold" />
-
-    <TextView
-        android:id="@+id/song_artist"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_below="@id/song_name"
-        android:layout_marginStart="40dp"
-        android:layout_marginTop="8dp"
-        android:layout_marginEnd="40dp"
-        android:ellipsize="end"
-        android:gravity="center_horizontal"
-        android:maxLines="1"
-        android:text="Artist Name"
-        android:textColor="@color/colorAccent"
-        android:textSize="18sp" />
-    <TextView
-        android:id="@+id/song_album"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_below="@id/song_artist"
-        android:layout_marginStart="40dp"
-        android:layout_marginTop="5dp"
-        android:layout_marginEnd="40dp"
-        android:ellipsize="end"
-        android:gravity="center_horizontal"
-        android:maxLines="1"
-        android:text="Album Name"
-        android:textColor="@color/colorAccent"
-        android:textSize="16sp"
-        android:textStyle="italic" />
-
-    <!-- Bố cục các nút điều khiển và seekbar -->
+    <!-- Chú thích: Container chứa các nút điều khiển dưới cùng -->
+    <!-- SỬA LỖI: Đặt ID cho RelativeLayout này -->
     <RelativeLayout
+        android:id="@+id/bottom_controls_container"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
@@ -127,7 +97,7 @@
             android:layout_marginEnd="20dp"
             android:layout_marginBottom="20dp"
             android:orientation="horizontal">
-
+            <!-- ... (giữ nguyên nội dung) ... -->
             <TextView
                 android:id="@+id/durationPlayed"
                 android:layout_width="wrap_content"
@@ -161,7 +131,7 @@
             android:layout_below="@id/seek_bar_layout"
             android:gravity="center"
             android:orientation="horizontal">
-
+            <!-- ... (giữ nguyên nội dung) ... -->
             <ImageView
                 android:id="@+id/id_shuffle"
                 android:layout_width="40dp"
@@ -203,8 +173,89 @@
                 android:layout_height="40dp"
                 android:src="@drawable/ic_repeat_off"
                 app:tint="@color/colorAccent" />
-
         </LinearLayout>
     </RelativeLayout>
 
+    <!-- Khung thông tin bài hát và lời bài hát -->
+    <RelativeLayout
+        android:id="@+id/song_info_container"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/cover_art"
+        android:layout_above="@id/bottom_controls_container">
+
+        <!-- Tên bài hát, nghệ sĩ, album -->
+        <LinearLayout
+            android:id="@+id/text_info_layout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/song_name"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="32dp"
+                android:layout_marginTop="20dp"
+                android:layout_marginEnd="32dp"
+                android:ellipsize="end"
+                android:gravity="center_horizontal"
+                android:maxLines="1"
+                android:text="Song Name"
+                android:textColor="@color/colorAccent"
+                android:textSize="22sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/song_artist"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/song_name"
+                android:layout_marginStart="40dp"
+                android:layout_marginTop="8dp"
+                android:layout_marginEnd="40dp"
+                android:ellipsize="end"
+                android:gravity="center_horizontal"
+                android:maxLines="1"
+                android:text="Artist Name"
+                android:textColor="@color/colorAccent"
+                android:textSize="18sp" />
+
+            <TextView
+                android:id="@+id/song_album"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/song_artist"
+                android:layout_marginStart="40dp"
+                android:layout_marginTop="5dp"
+                android:layout_marginEnd="40dp"
+                android:ellipsize="end"
+                android:gravity="center_horizontal"
+                android:maxLines="1"
+                android:text="Album Name"
+                android:textColor="@color/colorAccent"
+                android:textSize="16sp"
+                android:textStyle="italic" />
+        </LinearLayout>
+
+        <!-- SỬA LỖI: Di chuyển ScrollView vào đây -->
+        <ScrollView
+            android:id="@+id/lyrics_scrollview"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_margin="20dp"
+            android:padding="10dp"
+            android:background="#80000000"
+            android:visibility="gone"> <!-- Ban đầu ẩn đi -->
+
+            <TextView
+                android:id="@+id/lyrics_textview"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textColor="@android:color/white"
+                android:textSize="16sp"
+                android:gravity="center_horizontal"
+                android:lineSpacingExtra="4dp"/>
+        </ScrollView>
+    </RelativeLayout>
 </RelativeLayout>

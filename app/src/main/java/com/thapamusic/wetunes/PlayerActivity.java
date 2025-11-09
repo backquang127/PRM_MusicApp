@@ -30,7 +30,11 @@ import android.widget.RelativeLayout;
 import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
-
+import android.widget.ScrollView;
+import com.android.volley.Request;
+import com.android.volley.RequestQueue;
+import com.android.volley.toolbox.JsonObjectRequest;
+import com.android.volley.toolbox.Volley;
 import com.bumptech.glide.Glide;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
@@ -38,13 +42,16 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Random;
 import java.util.Locale;
+import java.util.HashMap;
+import java.util.Map;
 
+import org.json.JSONException;
 public class PlayerActivity extends AppCompatActivity implements ActionPlaying, ServiceConnection {
 
     // Views
     TextView song_name, artist_name, duration_played, duration_total, album_name, textNowplaying;
     // Trong PlayerActivity.java
-    ImageView cover_art, nextBtn, prevBtn, backBtn, shuffleBtn, repeatBtn, sleepTimerBtn;
+    ImageView cover_art, nextBtn, prevBtn, backBtn, shuffleBtn, repeatBtn, sleepTimerBtn,lyricsBtn;
     FloatingActionButton playPauseBtn;
     SeekBar seekBar;
 
@@ -63,6 +70,8 @@ public class PlayerActivity extends AppCompatActivity implements ActionPlaying, 
     // Các biến trạng thái (không còn static)
     private boolean shuffleBoolean = false;
     private boolean repeatBoolean = false;
+    ScrollView lyricsScrollView; // Thêm ScrollView cho lời bài hát
+    TextView lyricsTextView; // Thêm TextView cho lời bài hát
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -76,7 +85,6 @@ public class PlayerActivity extends AppCompatActivity implements ActionPlaying, 
         initViews();
         getIntentData();
         setupClickListeners();
-
         startMusicService();
 
         seekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
@@ -140,11 +148,7 @@ public class PlayerActivity extends AppCompatActivity implements ActionPlaying, 
         musicService = myBinder.getService();
         isBound = true;
         musicService.setCallBack(this);
-
-        // Luôn cập nhật UI từ trạng thái của service khi kết nối
         updateUIFromService();
-
-        // Bắt đầu cập nhật seekbar
         handler.post(updateSeekBar);
     }
 
@@ -170,19 +174,25 @@ public class PlayerActivity extends AppCompatActivity implements ActionPlaying, 
     @Override
     public void nextBtnClicked() {
         if (musicService == null) return;
-
         position = calculateNextPosition();
-        musicService.playMedia(position); // Service sẽ tự xử lý stop, release và create
+        musicService.playMedia(position);
         updateUIFromService();
+        // Tự động ẩn lời bài hát khi chuyển bài
+        if (lyricsScrollView.getVisibility() == View.VISIBLE) {
+            lyricsScrollView.setVisibility(View.GONE);
+        }
     }
 
     @Override
     public void prevBtnClicked() {
         if (musicService == null) return;
-
         position = calculatePrevPosition();
         musicService.playMedia(position);
         updateUIFromService();
+        // Tự động ẩn lời bài hát khi chuyển bài
+        if (lyricsScrollView.getVisibility() == View.VISIBLE) {
+            lyricsScrollView.setVisibility(View.GONE);
+        }
     }
 
     private void updateUIFromService() {
@@ -259,13 +269,23 @@ public class PlayerActivity extends AppCompatActivity implements ActionPlaying, 
             repeatBoolean = !repeatBoolean;
             repeatBtn.setImageResource(repeatBoolean ? R.drawable.ic_repeat_on : R.drawable.ic_repeat_off);
         });
+
         sleepTimerBtn.setOnClickListener(v -> showTimerDialog());
+
+        // THÊM SỰ KIỆN CLICK CHO NÚT LYRICS
+        lyricsBtn.setOnClickListener(v -> {
+            if (lyricsScrollView.getVisibility() == View.VISIBLE) {
+                lyricsScrollView.setVisibility(View.GONE);
+            } else {
+                fetchLyrics();
+            }
+        });
     }
 
     private void initViews() {
         song_name = findViewById(R.id.song_name);
         artist_name = findViewById(R.id.song_artist);
-        album_name = findViewById(R.id.song_album); // Sửa lỗi: Thêm khai báo
+        album_name = findViewById(R.id.song_album);
         duration_played = findViewById(R.id.durationPlayed);
         duration_total = findViewById(R.id.durationTotal);
         cover_art = findViewById(R.id.cover_art);
@@ -276,8 +296,13 @@ public class PlayerActivity extends AppCompatActivity implements ActionPlaying, 
         repeatBtn = findViewById(R.id.id_repeat);
         playPauseBtn = findViewById(R.id.play_pause);
         seekBar = findViewById(R.id.seekBar);
-        textNowplaying = findViewById(R.id.nowplaing); // Sửa lỗi: Thêm khai báo
+        textNowplaying = findViewById(R.id.nowplaing);
         sleepTimerBtn = findViewById(R.id.sleep_timer_btn);
+
+        // THÊM ÁNH XẠ CHO CÁC VIEW CỦA LYRICS
+        lyricsBtn = findViewById(R.id.lyrics_btn);
+        lyricsScrollView = findViewById(R.id.lyrics_scrollview);
+        lyricsTextView = findViewById(R.id.lyrics_textview);
     }
 
     private void metaData(Uri uri) {
@@ -400,4 +425,110 @@ public class PlayerActivity extends AppCompatActivity implements ActionPlaying, 
         });
         builder.create().show();
     }
+
+    // Trong file PlayerActivity.java
+// THAY THẾ HOÀN TOÀN PHƯƠNG THỨC fetchLyrics
+    private void fetchLyrics() {
+        if (musicService == null || listSongs.isEmpty() || position == -1) {
+            Toast.makeText(this, "Chưa có bài hát nào đang phát", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        MusicFiles currentSong = listSongs.get(position);
+        String originalArtist = currentSong.getArtist();
+        String originalTitle = currentSong.getTitle();
+
+        Log.d("LyricsDebug", "Dữ liệu gốc - Artist: [" + originalArtist + "], Title: [" + originalTitle + "]");
+
+        String artist = "";
+        String title = "";
+
+        // Kịch bản 1: Dữ liệu có vẻ chuẩn
+        if (originalArtist != null && !originalArtist.trim().isEmpty() && !originalArtist.trim().equalsIgnoreCase("<unknown>")) {
+            artist = originalArtist.trim();
+            title = originalTitle.trim();
+        }
+        // Kịch bản 2: Dữ liệu không có Artist, nhưng có trong Title
+        else if (originalTitle != null && originalTitle.contains("-")) {
+            String[] parts = originalTitle.split("-", 2);
+            if (parts.length == 2) {
+                artist = parts[0].trim();
+                title = parts[1].trim();
+            } else {
+                title = originalTitle.trim();
+            }
+        }
+        // Kịch bản 3: Chỉ dùng title
+        else {
+            title = (originalTitle != null) ? originalTitle.trim() : "";
+        }
+
+        // 1. Xóa các chuỗi trong ngoặc () và []
+        artist = artist.replaceAll("[\\(\\[].*?[\\)\\]]", "").trim();
+        title = title.replaceAll("[\\(\\[].*?[\\)\\]]", "").trim();
+
+        // 2. Thay thế các ký tự phân cách phổ biến bằng khoảng trắng
+        String artistCleaned = artist.replaceAll("[_\\-]", " ").replaceAll("\\s+", " ").trim();
+        String titleCleaned = title.replaceAll("[_\\-]", " ").replaceAll("\\s+", " ").trim();
+
+        // 3. THÊM QUY TẮC MỚI: Loại bỏ các con số (đặc biệt là năm) ở cuối chuỗi
+        //    Regex `\\s+\\d{4,}$` sẽ tìm một hoặc nhiều khoảng trắng, theo sau là 4 con số trở lên ở cuối chuỗi.
+        titleCleaned = titleCleaned.replaceAll("\\s+\\d{4,}$", "").trim();
+
+
+        Log.d("LyricsDebug", "Dữ liệu đã xử lý - Artist: [" + artistCleaned + "], Title: [" + titleCleaned + "]");
+
+        if (artistCleaned.isEmpty() || titleCleaned.isEmpty()) {
+            lyricsTextView.setText("Không thể tìm lời bài hát (thiếu thông tin).");
+            lyricsScrollView.setVisibility(View.VISIBLE);
+            return;
+        }
+
+        String artistForUrl = artistCleaned.replaceAll(" ", "%20");
+        String titleForUrl = titleCleaned.replaceAll(" ", "%20");
+        String url = "https://api.lyrics.ovh/v1/" + artistForUrl + "/" + titleForUrl;
+
+        Log.d("LyricsDebug", "URL đang gọi (kiểu thô): " + url);
+
+        lyricsTextView.setText("Đang tìm lời bài hát...");
+        lyricsScrollView.setVisibility(View.VISIBLE);
+
+        RequestQueue queue = Volley.newRequestQueue(this);
+        JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(
+                Request.Method.GET, url, null,
+                response -> {
+                    Log.d("LyricsDebug", "Phản hồi thành công!");
+                    try {
+                        String lyrics = response.getString("lyrics");
+                        lyricsTextView.setText(lyrics.trim().isEmpty() ? "Không tìm thấy lời cho bài hát này." : lyrics.replaceAll("\r\n", "\n"));
+                    } catch (JSONException e) {
+                        lyricsTextView.setText("Lỗi xử lý dữ liệu lời bài hát.");
+                        Log.e("LyricsDebug", "Lỗi JSONException: " + e.getMessage());
+                    }
+                },
+                error -> {
+                    String errorMessage = "Không tìm thấy lời bài hát hoặc có lỗi mạng.";
+                    if (error.networkResponse != null) {
+                        errorMessage += " (Mã lỗi: " + error.networkResponse.statusCode + ")";
+                        Log.e("LyricsDebug", "Lỗi mạng! Mã lỗi: " + error.networkResponse.statusCode);
+                    } else {
+                        Log.e("LyricsDebug", "Lỗi mạng! Không có phản hồi. Chi tiết: " + error.toString());
+                    }
+                    lyricsTextView.setText(errorMessage);
+                }
+        ) {
+            // GHI ĐÈ PHƯƠNG THỨC NÀY ĐỂ THÊM HEADER
+            @Override
+            public Map<String, String> getHeaders() {
+                Map<String, String> headers = new HashMap<>();
+                // Giả mạo User-Agent của một trình duyệt phổ biến
+                headers.put("User-Agent", "Mozilla/5.0");
+                return headers;
+            }
+        };
+
+        queue.add(jsonObjectRequest);
+    }
+
 }
+

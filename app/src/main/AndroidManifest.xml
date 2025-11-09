@@ -12,7 +12,7 @@
 
     <!-- Quyền READ_PHONE_STATE rất nhạy cảm và có thể không cần thiết, cân nhắc xóa nếu không dùng -->
     <uses-permission android:name="android.permission.READ_PHONE_STATE" />
-
+    <uses-permission android:name="android.permission.INTERNET" />
     <application
         android:allowBackup="true"
         android:hardwareAccelerated="false"

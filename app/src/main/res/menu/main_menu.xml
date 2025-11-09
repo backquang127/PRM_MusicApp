@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <item
+        android:id="@+id/search_option"
+        android:title="Search"
+        android:icon="@drawable/ic_search"
+        app:showAsAction="ifRoom|collapseActionView"
+        app:actionViewClass="androidx.appcompat.widget.SearchView" />
+
+    <item
+        android:id="@+id/action_refresh"
+        android:title="Làm mới"
+        android:icon="@drawable/ic_refresh"
+        app:showAsAction="ifRoom" />
+
+    <item
+        android:id="@+id/sort_options"
+        android:title="Sắp xếp">
+        <menu>
+            <item android:id="@+id/by_title"
+                android:title="Theo tên"/>
+            <item android:id="@+id/by_date"
+                android:title="Theo ngày"/>
+            <item android:id="@+id/by_size"
+                android:title="Theo kích cỡ"/>
+        </menu>
+    </item>
+
+</menu>
