@@ -8,14 +8,12 @@
     android:background="@drawable/main_bg"
     tools:context=".PlayerActivity">
 
-    <!-- Lớp phủ Gradient mờ dần từ trên xuống -->
     <ImageView
         android:id="@+id/imageViewGredient"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:src="@drawable/gredient_bg" />
 
-    <!-- Thanh công cụ trên cùng -->
     <RelativeLayout
         android:id="@+id/layout_top_btn"
         android:layout_width="match_parent"
@@ -31,6 +29,16 @@
             android:layout_centerVertical="true"
             android:layout_marginStart="15dp"
             android:src="@drawable/ic_baseline_chevron_left" />
+
+        <ImageView
+            android:id="@+id/playback_speed_btn"
+            android:layout_width="30dp"
+            android:layout_height="30dp"
+            android:src="@drawable/outline_fast_forward_24"
+            android:layout_toEndOf="@id/back_btn"
+            android:layout_centerVertical="true"
+            android:layout_marginStart="10dp"
+            app:tint="@color/colorAccent" />
 
         <TextView
             android:id="@+id/nowplaing"
@@ -53,7 +61,6 @@
             app:tint="@color/colorAccent" />
 
 
-        <!-- SỬA LỖI: Thêm nút Lyrics vào -->
         <ImageView
             android:id="@+id/lyrics_btn"
             android:layout_width="30dp"
@@ -69,15 +76,12 @@
             android:id="@+id/favorite_btn"
             android:layout_width="30dp"
             android:layout_height="30dp"
-            android:src="@drawable/ic_favorite_border"
+            android:src="@drawable/baseline_favorite_24"
             android:layout_toStartOf="@id/lyrics_btn"
             android:layout_centerVertical="true"
-            android:layout_marginEnd="15dp"
-            app:tint="@color/colorAccent" />
+            android:layout_marginEnd="15dp"/>
 
     </RelativeLayout>
-
-    <!-- Ảnh bìa album -->
     <ImageView
         android:id="@+id/cover_art"
         android:layout_width="280dp"
@@ -89,8 +93,6 @@
         android:src="@drawable/musicicon"
         android:contentDescription="@string/album_art" />
 
-    <!-- Chú thích: Container chứa các nút điều khiển dưới cùng -->
-    <!-- SỬA LỖI: Đặt ID cho RelativeLayout này -->
     <RelativeLayout
         android:id="@+id/bottom_controls_container"
         android:layout_width="match_parent"
@@ -98,7 +100,6 @@
         android:layout_alignParentBottom="true"
         android:layout_marginBottom="40dp">
 
-        <!-- Thời gian và SeekBar -->
         <LinearLayout
             android:id="@+id/seek_bar_layout"
             android:layout_width="match_parent"
@@ -107,7 +108,6 @@
             android:layout_marginEnd="20dp"
             android:layout_marginBottom="20dp"
             android:orientation="horizontal">
-            <!-- ... (giữ nguyên nội dung) ... -->
             <TextView
                 android:id="@+id/durationPlayed"
                 android:layout_width="wrap_content"
@@ -134,14 +134,12 @@
                 android:textSize="14sp" />
         </LinearLayout>
 
-        <!-- Các nút điều khiển chính -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_below="@id/seek_bar_layout"
             android:gravity="center"
             android:orientation="horizontal">
-            <!-- ... (giữ nguyên nội dung) ... -->
             <ImageView
                 android:id="@+id/id_shuffle"
                 android:layout_width="40dp"
@@ -186,7 +184,6 @@
         </LinearLayout>
     </RelativeLayout>
 
-    <!-- Khung thông tin bài hát và lời bài hát -->
     <RelativeLayout
         android:id="@+id/song_info_container"
         android:layout_width="match_parent"
@@ -194,7 +191,6 @@
         android:layout_below="@id/cover_art"
         android:layout_above="@id/bottom_controls_container">
 
-        <!-- Tên bài hát, nghệ sĩ, album -->
         <LinearLayout
             android:id="@+id/text_info_layout"
             android:layout_width="match_parent"
@@ -248,7 +244,6 @@
                 android:textStyle="italic" />
         </LinearLayout>
 
-        <!-- SỬA LỖI: Di chuyển ScrollView vào đây -->
         <ScrollView
             android:id="@+id/lyrics_scrollview"
             android:layout_width="match_parent"
@@ -256,16 +251,14 @@
             android:layout_margin="20dp"
             android:padding="10dp"
             android:background="#80000000"
-            android:visibility="gone"> <!-- Ban đầu ẩn đi -->
-
-            <TextView
-                android:id="@+id/lyrics_textview"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:textColor="@android:color/white"
-                android:textSize="16sp"
-                android:gravity="center_horizontal"
-                android:lineSpacingExtra="4dp"/>
+            android:visibility="gone"> <TextView
+            android:id="@+id/lyrics_textview"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textColor="@android:color/white"
+            android:textSize="16sp"
+            android:gravity="center_horizontal"
+            android:lineSpacingExtra="4dp"/>
         </ScrollView>
     </RelativeLayout>
 </RelativeLayout>

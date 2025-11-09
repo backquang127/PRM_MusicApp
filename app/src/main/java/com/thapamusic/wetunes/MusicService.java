@@ -7,6 +7,7 @@ import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.media.MediaPlayer;
+import android.media.PlaybackParams; // Cần import cho PlaybackParams
 import android.net.Uri;
 import android.os.Binder;
 import android.os.Build;
@@ -37,6 +38,14 @@ public class MusicService extends Service implements MediaPlayer.OnCompletionLis
     MediaSessionCompat mediaSessionCompat;
     private final Handler timerHandler = new Handler();
     private Runnable sleepTimerRunnable;
+
+    // Biến lưu trữ tốc độ hiện tại để áp dụng lại nếu cần
+    private float currentSpeed = 1.0f;
+
+    public float getCurrentPlaybackSpeed() {
+        return currentSpeed;
+    }
+
     @Override
     public void onCreate() {
         super.onCreate();
@@ -98,6 +107,8 @@ public class MusicService extends Service implements MediaPlayer.OnCompletionLis
         createMediaPlayer(position);
         if (mediaPlayer != null) {
             mediaPlayer.start();
+            // Áp dụng tốc độ đã lưu (nếu có)
+            setPlaybackSpeed(currentSpeed);
         }
     }
 
@@ -237,6 +248,31 @@ public class MusicService extends Service implements MediaPlayer.OnCompletionLis
 
             // Bắt đầu đếm ngược
             timerHandler.postDelayed(sleepTimerRunnable, milliseconds);
+        }
+    }
+
+    /**
+     * Phương thức điều chỉnh tốc độ phát nhạc (chỉ hoạt động trên API 23/Marshmallow trở lên).
+     * @param speed Tốc độ phát (ví dụ: 0.5f, 1.0f, 1.5f, 2.0f)
+     */
+    public void setPlaybackSpeed(float speed) {
+        currentSpeed = speed; // Lưu lại tốc độ hiện tại
+
+        if (mediaPlayer != null) {
+            // Yêu cầu API 23 trở lên để sử dụng PlaybackParams
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                try {
+                    PlaybackParams params = mediaPlayer.getPlaybackParams();
+                    params.setSpeed(speed);
+                    mediaPlayer.setPlaybackParams(params);
+                    Log.d("MusicService", "Playback speed set to: " + speed);
+                } catch (Exception e) {
+                    Log.e("MusicService", "Error setting playback speed on API >= 23: " + e.getMessage());
+                }
+            } else {
+                Log.w("MusicService", "Playback speed adjustment requires API 23 or higher.");
+                // Có thể gửi Toast hoặc log lỗi nếu thiết bị quá cũ
+            }
         }
     }
 }

@@ -1,19 +1,15 @@
 package com.thapamusic.wetunes;
 
-import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.palette.graphics.Palette;
 
-import android.app.Activity;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.graphics.Color;
-import android.graphics.drawable.GradientDrawable;
 import android.media.MediaMetadataRetriever;
 import android.net.Uri;
 import android.os.Bundle;
@@ -26,7 +22,6 @@ import android.view.WindowManager;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.widget.ImageView;
-import android.widget.RelativeLayout;
 import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -46,12 +41,13 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.json.JSONException;
+
 public class PlayerActivity extends AppCompatActivity implements ActionPlaying, ServiceConnection {
 
     // Views
     TextView song_name, artist_name, duration_played, duration_total, album_name, textNowplaying;
-    // Trong PlayerActivity.java
-    ImageView cover_art, nextBtn, prevBtn, backBtn, shuffleBtn, repeatBtn, sleepTimerBtn,lyricsBtn,favoriteBtn;
+    // Đã thêm playbackSpeedBtn
+    ImageView cover_art, nextBtn, prevBtn, backBtn, shuffleBtn, repeatBtn, sleepTimerBtn, lyricsBtn, favoriteBtn, playbackSpeedBtn;
     FloatingActionButton playPauseBtn;
     SeekBar seekBar;
 
@@ -67,11 +63,13 @@ public class PlayerActivity extends AppCompatActivity implements ActionPlaying, 
     // Handler để cập nhật seekbar
     private final Handler handler = new Handler();
 
-    // Các biến trạng thái (không còn static)
+    // Các biến trạng thái
     private boolean shuffleBoolean = false;
     private boolean repeatBoolean = false;
-    ScrollView lyricsScrollView; // Thêm ScrollView cho lời bài hát
-    TextView lyricsTextView; // Thêm TextView cho lời bài hát
+    // Đã thêm biến trạng thái tốc độ phát
+    private float currentPlaybackSpeed = 1.0f;
+    ScrollView lyricsScrollView;
+    TextView lyricsTextView;
     private FavoritesManager favoritesManager;
     private boolean isFavorite = false;
 
@@ -154,6 +152,9 @@ public class PlayerActivity extends AppCompatActivity implements ActionPlaying, 
         musicService.setCallBack(this);
         updateUIFromService();
         handler.post(updateSeekBar);
+
+        // Đồng bộ tốc độ từ Service (nếu có)
+        currentPlaybackSpeed = musicService.getCurrentPlaybackSpeed();
     }
 
     @Override
@@ -185,7 +186,8 @@ public class PlayerActivity extends AppCompatActivity implements ActionPlaying, 
         if (lyricsScrollView.getVisibility() == View.VISIBLE) {
             lyricsScrollView.setVisibility(View.GONE);
         }
-        updateUIFromService();
+        // updateUIFromService() đã được gọi ở trên, có thể xóa dòng này nếu bạn muốn tối ưu
+        // updateUIFromService();
     }
 
     @Override
@@ -198,7 +200,8 @@ public class PlayerActivity extends AppCompatActivity implements ActionPlaying, 
         if (lyricsScrollView.getVisibility() == View.VISIBLE) {
             lyricsScrollView.setVisibility(View.GONE);
         }
-        updateUIFromService();
+        // updateUIFromService() đã được gọi ở trên, có thể xóa dòng này nếu bạn muốn tối ưu
+        // updateUIFromService();
     }
 
     private void updateUIFromService() {
@@ -219,6 +222,9 @@ public class PlayerActivity extends AppCompatActivity implements ActionPlaying, 
         metaData(uri);
         updatePlayPauseButton();
         updateFavoriteButtonStatus();
+
+        // Đồng bộ tốc độ khi chuyển bài
+        currentPlaybackSpeed = musicService.getCurrentPlaybackSpeed();
     }
 
     private void updateFavoriteButtonStatus() {
@@ -228,9 +234,9 @@ public class PlayerActivity extends AppCompatActivity implements ActionPlaying, 
         isFavorite = favoritesManager.isFavorite(currentSongId);
 
         if (isFavorite) {
-            favoriteBtn.setImageResource(R.drawable.ic_favorite_filled);
+            favoriteBtn.setImageResource(R.drawable.baseline_favorite_red);
         } else {
-            favoriteBtn.setImageResource(R.drawable.ic_favorite_border);
+            favoriteBtn.setImageResource(R.drawable.baseline_favorite_24);
         }
     }
 
@@ -292,6 +298,9 @@ public class PlayerActivity extends AppCompatActivity implements ActionPlaying, 
 
         sleepTimerBtn.setOnClickListener(v -> showTimerDialog());
 
+        // THÊM SỰ KIỆN CLICK CHO NÚT TỐC ĐỘ PHÁT
+        playbackSpeedBtn.setOnClickListener(v -> showPlaybackSpeedDialog());
+
         // THÊM SỰ KIỆN CLICK CHO NÚT LYRICS
         lyricsBtn.setOnClickListener(v -> {
             if (lyricsScrollView.getVisibility() == View.VISIBLE) {
@@ -308,12 +317,12 @@ public class PlayerActivity extends AppCompatActivity implements ActionPlaying, 
             if (isFavorite) {
                 // Nếu đang là yêu thích -> Bỏ yêu thích
                 favoritesManager.removeFavorite(currentSongId);
-                favoriteBtn.setImageResource(R.drawable.ic_favorite_border);
+                favoriteBtn.setImageResource(R.drawable.baseline_favorite_24);
                 Toast.makeText(this, "Đã xóa khỏi Yêu thích", Toast.LENGTH_SHORT).show();
             } else {
                 // Nếu chưa yêu thích -> Thêm vào yêu thích
                 favoritesManager.addFavorite(currentSongId);
-                favoriteBtn.setImageResource(R.drawable.ic_favorite_filled);
+                favoriteBtn.setImageResource(R.drawable.baseline_favorite_red);
                 Toast.makeText(this, "Đã thêm vào Yêu thích", Toast.LENGTH_SHORT).show();
             }
             // Cập nhật lại trạng thái
@@ -337,6 +346,9 @@ public class PlayerActivity extends AppCompatActivity implements ActionPlaying, 
         seekBar = findViewById(R.id.seekBar);
         textNowplaying = findViewById(R.id.nowplaing);
         sleepTimerBtn = findViewById(R.id.sleep_timer_btn);
+
+        // THÊM ÁNH XẠ CHO NÚT TỐC ĐỘ PHÁT
+        playbackSpeedBtn = findViewById(R.id.playback_speed_btn);
 
         // THÊM ÁNH XẠ CHO CÁC VIEW CỦA LYRICS
         lyricsBtn = findViewById(R.id.lyrics_btn);
@@ -375,8 +387,10 @@ public class PlayerActivity extends AppCompatActivity implements ActionPlaying, 
             Log.e("PlayerActivity", "Error setting metadata source", e);
         } finally {
             try {
+                // Không cần try-catch cho release() nếu sử dụng try-with-resources,
+                // nhưng giữ nguyên theo cấu trúc code gốc của bạn
                 retriever.release();
-            } catch (IOException e) {
+            } catch (Exception e) {
                 Log.e("PlayerActivity", "Error releasing retriever", e);
             }
         }
@@ -438,6 +452,7 @@ public class PlayerActivity extends AppCompatActivity implements ActionPlaying, 
         });
         imageView.startAnimation(animOut);
     }
+
     private void showTimerDialog() {
         // Chỉ hiển thị dialog nếu service đã được kết nối
         if (musicService == null) {
@@ -466,8 +481,44 @@ public class PlayerActivity extends AppCompatActivity implements ActionPlaying, 
         builder.create().show();
     }
 
+    // PHƯƠNG THỨC MỚI: Tùy chỉnh tốc độ phát
+    private void showPlaybackSpeedDialog() {
+        if (musicService == null) {
+            Toast.makeText(this, "Dịch vụ chưa sẵn sàng", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        final String[] speedOptions = {"0.5x", "0.75x", "1.0x (Chuẩn)", "1.25x", "1.5x", "2.0x"};
+        final float[] speedValues = {0.5f, 0.75f, 1.0f, 1.25f, 1.5f, 2.0f};
+        int checkedItem = 2; // Mặc định chọn 1.0x
+
+        // Tìm vị trí của tốc độ hiện tại để đánh dấu
+        for (int i = 0; i < speedValues.length; i++) {
+            if (currentPlaybackSpeed == speedValues[i]) {
+                checkedItem = i;
+                break;
+            }
+        }
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("Chọn tốc độ phát");
+        builder.setSingleChoiceItems(speedOptions, checkedItem, (dialog, which) -> {
+            float newSpeed = speedValues[which];
+            currentPlaybackSpeed = newSpeed; // Cập nhật trạng thái
+
+            // !!! QUAN TRỌNG: Gọi phương thức trong MusicService !!!
+            musicService.setPlaybackSpeed(newSpeed);
+
+            dialog.dismiss();
+
+            // Thông báo cho người dùng
+            Toast.makeText(this, "Tốc độ: " + speedOptions[which], Toast.LENGTH_SHORT).show();
+        });
+        builder.create().show();
+    }
+
     // Trong file PlayerActivity.java
-// THAY THẾ HOÀN TOÀN PHƯƠNG THỨC fetchLyrics
+// PHƯƠNG THỨC TÌM LỜI BÀI HÁT
     private void fetchLyrics() {
         if (musicService == null || listSongs.isEmpty() || position == -1) {
             Toast.makeText(this, "Chưa có bài hát nào đang phát", Toast.LENGTH_SHORT).show();
@@ -569,6 +620,4 @@ public class PlayerActivity extends AppCompatActivity implements ActionPlaying, 
 
         queue.add(jsonObjectRequest);
     }
-
 }
-
