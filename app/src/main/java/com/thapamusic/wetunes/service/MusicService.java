@@ -1,4 +1,4 @@
-package com.thapamusic.wetunes;
+package com.thapamusic.wetunes.service;
 
 import android.app.Notification;
 import android.app.PendingIntent;
@@ -21,19 +21,25 @@ import android.os.Handler;
 import java.io.IOException;
 import java.util.ArrayList;
 
-import static com.thapamusic.wetunes.ApplicationClass.ACTION_NEXT;
-import static com.thapamusic.wetunes.ApplicationClass.ACTION_PLAY;
-import static com.thapamusic.wetunes.ApplicationClass.ACTION_PREVIOUS;
-import static com.thapamusic.wetunes.ApplicationClass.CHANNEL_ID_2;
+import static com.thapamusic.wetunes.ui.ApplicationClass.ACTION_NEXT;
+import static com.thapamusic.wetunes.ui.ApplicationClass.ACTION_PLAY;
+import static com.thapamusic.wetunes.ui.ApplicationClass.ACTION_PREVIOUS;
+import static com.thapamusic.wetunes.ui.ApplicationClass.CHANNEL_ID_2;
+
+import com.thapamusic.wetunes.ActionPlaying;
+import com.thapamusic.wetunes.R;
+import com.thapamusic.wetunes.activity.MainActivity;
+import com.thapamusic.wetunes.model.MusicFiles;
+import com.thapamusic.wetunes.ui.NotificationReceiver;
 
 public class MusicService extends Service implements MediaPlayer.OnCompletionListener {
 
     private final IBinder mBinder = new MyBinder();
     MediaPlayer mediaPlayer;
     // Dữ liệu của riêng Service, không phụ thuộc vào bất kỳ Activity nào
-    ArrayList<MusicFiles> musicFiles = new ArrayList<>();
+    public ArrayList<MusicFiles> musicFiles = new ArrayList<>();
     Uri uri;
-    int position = -1;
+    public int position = -1;
     ActionPlaying actionPlaying;
     MediaSessionCompat mediaSessionCompat;
     private final Handler timerHandler = new Handler();
@@ -60,7 +66,7 @@ public class MusicService extends Service implements MediaPlayer.OnCompletionLis
     }
 
     public class MyBinder extends Binder {
-        MusicService getService() {
+        public MusicService getService() {
             return MusicService.this;
         }
     }
@@ -112,13 +118,13 @@ public class MusicService extends Service implements MediaPlayer.OnCompletionLis
         }
     }
 
-    void start() {
+    public void start() {
         if (mediaPlayer != null) mediaPlayer.start();
     }
-    boolean isPlaying() {
+    public boolean isPlaying() {
         return mediaPlayer != null && mediaPlayer.isPlaying();
     }
-    void pause() {
+    public void pause() {
         if (mediaPlayer != null) mediaPlayer.pause();
     }
     void stop() {
@@ -130,13 +136,13 @@ public class MusicService extends Service implements MediaPlayer.OnCompletionLis
             mediaPlayer = null;
         }
     }
-    int getDuration() {
+    public int getDuration() {
         return mediaPlayer != null ? mediaPlayer.getDuration() : 0;
     }
-    void seekTo(int position) {
+    public void seekTo(int position) {
         if (mediaPlayer != null) mediaPlayer.seekTo(position);
     }
-    int getCurrentPosition() {
+    public int getCurrentPosition() {
         return mediaPlayer != null ? mediaPlayer.getCurrentPosition() : 0;
     }
 
@@ -160,7 +166,7 @@ public class MusicService extends Service implements MediaPlayer.OnCompletionLis
         }
     }
 
-    void setCallBack(ActionPlaying actionPlaying) {
+    public void setCallBack(ActionPlaying actionPlaying) {
         this.actionPlaying = actionPlaying;
     }
 
@@ -224,9 +230,9 @@ public class MusicService extends Service implements MediaPlayer.OnCompletionLis
     }
 
     // Các phương thức delegate
-    void playPauseBtnClicked() { if (actionPlaying != null) actionPlaying.playPauseBtnClicked(); }
-    void nextBtnClicked() { if (actionPlaying != null) actionPlaying.nextBtnClicked(); }
-    void prevBtnClicked() { if (actionPlaying != null) actionPlaying.prevBtnClicked(); }
+    public void playPauseBtnClicked() { if (actionPlaying != null) actionPlaying.playPauseBtnClicked(); }
+    public void nextBtnClicked() { if (actionPlaying != null) actionPlaying.nextBtnClicked(); }
+    public void prevBtnClicked() { if (actionPlaying != null) actionPlaying.prevBtnClicked(); }
 
     public void setSleepTimer(long milliseconds) {
         // Hủy bỏ bất kỳ bộ hẹn giờ nào đang chạy trước đó

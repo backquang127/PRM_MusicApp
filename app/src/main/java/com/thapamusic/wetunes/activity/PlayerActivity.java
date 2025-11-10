@@ -1,4 +1,4 @@
-package com.thapamusic.wetunes;
+package com.thapamusic.wetunes.activity;
 
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
@@ -34,8 +34,13 @@ import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.Volley;
 import com.bumptech.glide.Glide;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
+import com.thapamusic.wetunes.ActionPlaying;
+import com.thapamusic.wetunes.ui.FavoritesManager;
+import com.thapamusic.wetunes.model.MusicFiles;
+import com.thapamusic.wetunes.service.MusicService;
+import com.thapamusic.wetunes.ui.PlaylistManager;
+import com.thapamusic.wetunes.R;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Random;
 import java.util.Locale;

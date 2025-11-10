@@ -6,7 +6,7 @@
     android:layout_height="match_parent"
     android:orientation="vertical"
     android:background="@android:color/black"
-    tools:context=".MainActivity">
+    tools:context=".activity.MainActivity">
 
 
     <com.google.android.material.tabs.TabLayout
@@ -36,7 +36,7 @@
         <fragment
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            class="com.thapamusic.wetunes.NowPlayingFragmentBottom"
+            class="com.thapamusic.wetunes.fragment.NowPlayingFragmentBottom"
             tools:layout="@layout/fragment_now_playing_bottom"/>
     </FrameLayout>
 </RelativeLayout>

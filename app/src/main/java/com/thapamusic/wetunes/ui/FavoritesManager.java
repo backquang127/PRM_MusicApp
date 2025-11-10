@@ -1,4 +1,4 @@
-package com.thapamusic.wetunes;
+package com.thapamusic.wetunes.ui;
 
 import android.content.Context;
 import android.content.SharedPreferences;

@@ -1,4 +1,4 @@
-package com.thapamusic.wetunes;
+package com.thapamusic.wetunes.fragment;
 
 
 import android.os.Bundle;
@@ -8,6 +8,13 @@ import androidx.recyclerview.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+
+import com.thapamusic.wetunes.ui.FavoritesManager;
+import com.thapamusic.wetunes.activity.MainActivity;
+import com.thapamusic.wetunes.model.MusicFiles;
+import com.thapamusic.wetunes.R;
+import com.thapamusic.wetunes.adapter.MusicAdapter;
+
 import java.util.ArrayList;
 import java.util.Set;
 

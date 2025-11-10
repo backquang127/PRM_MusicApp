@@ -1,4 +1,4 @@
-package com.thapamusic.wetunes;
+package com.thapamusic.wetunes.ui;
 
 import android.app.Application;
 import android.app.NotificationChannel;

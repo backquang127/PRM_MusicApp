@@ -1,4 +1,4 @@
-package com.thapamusic.wetunes;
+package com.thapamusic.wetunes.adapter;
 
 import android.content.Context;
 import android.content.Intent;
@@ -12,6 +12,10 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 import com.bumptech.glide.Glide;
+import com.thapamusic.wetunes.model.MusicFiles;
+import com.thapamusic.wetunes.activity.PlayerActivity;
+import com.thapamusic.wetunes.R;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Locale; // Import Locale

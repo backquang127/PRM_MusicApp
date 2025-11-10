@@ -1,4 +1,4 @@
-package com.thapamusic.wetunes;
+package com.thapamusic.wetunes.model;
 
 import android.os.Parcel;
 import android.os.Parcelable;

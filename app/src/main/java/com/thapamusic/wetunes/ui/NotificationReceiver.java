@@ -1,13 +1,14 @@
-package com.thapamusic.wetunes;
+package com.thapamusic.wetunes.ui;
 
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
-import android.widget.Toast;
 
-import static com.thapamusic.wetunes.ApplicationClass.ACTION_NEXT;
-import static com.thapamusic.wetunes.ApplicationClass.ACTION_PLAY;
-import static com.thapamusic.wetunes.ApplicationClass.ACTION_PREVIOUS;
+import static com.thapamusic.wetunes.ui.ApplicationClass.ACTION_NEXT;
+import static com.thapamusic.wetunes.ui.ApplicationClass.ACTION_PLAY;
+import static com.thapamusic.wetunes.ui.ApplicationClass.ACTION_PREVIOUS;
+
+import com.thapamusic.wetunes.service.MusicService;
 
 public class NotificationReceiver extends BroadcastReceiver {
     @Override

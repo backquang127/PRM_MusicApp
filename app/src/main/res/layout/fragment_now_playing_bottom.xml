@@ -5,7 +5,7 @@
     android:layout_height="wrap_content"
     xmlns:tools="http://schemas.android.com/tools"
     android:background="#131313"
-    tools:context=".NowPlayingFragmentBottom"
+    tools:context=".fragment.NowPlayingFragmentBottom"
     android:clickable="true"
     android:focusable="true">
 

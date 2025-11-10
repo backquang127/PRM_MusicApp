@@ -1,4 +1,4 @@
-package com.thapamusic.wetunes;
+package com.thapamusic.wetunes.ui;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -14,6 +14,9 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
+import com.thapamusic.wetunes.R;
+import com.thapamusic.wetunes.adapter.AlbumDetailsAdapter;
+import com.thapamusic.wetunes.model.MusicFiles;
 
 import java.io.IOException;
 import java.util.ArrayList;

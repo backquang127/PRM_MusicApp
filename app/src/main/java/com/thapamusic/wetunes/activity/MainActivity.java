@@ -1,4 +1,4 @@
-package com.thapamusic.wetunes;
+package com.thapamusic.wetunes.activity;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -25,6 +25,12 @@ import android.view.MenuItem;
 import android.widget.Toast;
 
 import com.google.android.material.tabs.TabLayout;
+import com.thapamusic.wetunes.model.MusicFiles;
+import com.thapamusic.wetunes.R;
+import com.thapamusic.wetunes.fragment.AlbumFragment;
+import com.thapamusic.wetunes.fragment.FavoritesFragment;
+import com.thapamusic.wetunes.fragment.PlaylistsFragment;
+import com.thapamusic.wetunes.fragment.SongsFragment;
 
 import java.util.ArrayList;
 import java.util.List;

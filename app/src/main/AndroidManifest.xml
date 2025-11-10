@@ -21,13 +21,13 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:largeHeap="true"
-        android:name=".ApplicationClass"
+        android:name=".ui.ApplicationClass"
         android:theme="@style/Theme.WeTunes">
-        <activity android:name=".AlbumDetails"
-            android:parentActivityName=".MainActivity" />
-        <activity android:name=".PlayerActivity"
-            android:parentActivityName=".MainActivity" />
-        <activity android:name=".MainActivity"
+        <activity android:name=".ui.AlbumDetails"
+            android:parentActivityName=".activity.MainActivity" />
+        <activity android:name=".activity.PlayerActivity"
+            android:parentActivityName=".activity.MainActivity" />
+        <activity android:name=".activity.MainActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -35,11 +35,11 @@
             </intent-filter>
         </activity>
 
-        <service android:name=".MusicService"
+        <service android:name=".service.MusicService"
             android:enabled="true"
             android:foregroundServiceType="mediaPlayback"/>
 
-        <receiver android:name=".NotificationReceiver"
+        <receiver android:name=".ui.NotificationReceiver"
             android:enabled="true"
             android:exported="false">
             <intent-filter>

@@ -1,4 +1,4 @@
-package com.thapamusic.wetunes;
+package com.thapamusic.wetunes.adapter;
 
 import android.annotation.SuppressLint;
 import android.content.ContentUris;
@@ -14,13 +14,15 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.PopupMenu;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
 import com.google.android.material.snackbar.Snackbar;
+import com.thapamusic.wetunes.model.MusicFiles;
+import com.thapamusic.wetunes.activity.PlayerActivity;
+import com.thapamusic.wetunes.R;
 
 import java.io.File;
 import java.io.IOException;
@@ -33,7 +35,7 @@ public class MusicAdapter extends RecyclerView.Adapter<MusicAdapter.MyViewHolder
     // Bỏ 'static', đây là dữ liệu của riêng adapter này
     private ArrayList<MusicFiles> mFiles;
 
-    MusicAdapter(Context mContext, ArrayList<MusicFiles> mFiles) {
+    public MusicAdapter(Context mContext, ArrayList<MusicFiles> mFiles) {
         this.mContext = mContext;
         this.mFiles = mFiles;
     }
@@ -172,7 +174,7 @@ public class MusicAdapter extends RecyclerView.Adapter<MusicAdapter.MyViewHolder
 
     // Cập nhật lại danh sách một cách an toàn
     @SuppressLint("NotifyDataSetChanged")
-    void updateList(ArrayList<MusicFiles> musicFilesArrayList) {
+    public void updateList(ArrayList<MusicFiles> musicFilesArrayList) {
         mFiles = new ArrayList<>(musicFilesArrayList); // Tạo một bản sao mới
         notifyDataSetChanged(); // Cần thiết để cập nhật toàn bộ danh sách khi tìm kiếm
     }

@@ -1,4 +1,4 @@
-package com.thapamusic.wetunes;
+package com.thapamusic.wetunes.adapter;
 
 import android.content.Context;
 import android.content.Intent;
@@ -12,6 +12,10 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 import com.bumptech.glide.Glide;
+import com.thapamusic.wetunes.ui.AlbumDetails;
+import com.thapamusic.wetunes.model.MusicFiles;
+import com.thapamusic.wetunes.R;
+
 import java.io.IOException;
 import java.util.ArrayList;
 
@@ -27,7 +31,7 @@ public class AlbumAdapter extends RecyclerView.Adapter<AlbumAdapter.MyHolder> {
         this.albumFiles = albumFiles;
     }
     View view;
-    void updateList(ArrayList<MusicFiles> newList) {
+    public void updateList(ArrayList<MusicFiles> newList) {
         albumFiles = new ArrayList<>();
         albumFiles.addAll(newList);
         notifyDataSetChanged(); // Báo cho RecyclerView biết dữ liệu đã thay đổi và cần cập nhật UI
