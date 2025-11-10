@@ -94,6 +94,7 @@ public class MainActivity extends AppCompatActivity implements SearchView.OnQuer
         viewPagerAdapter.addFragment(new FavoritesFragment(), "Yêu thích");
         viewPagerAdapter.addFragment(new SongsFragment(), "Bài hát");
         viewPagerAdapter.addFragment(new AlbumFragment(), "Album");
+        viewPagerAdapter.addFragment(new PlaylistsFragment(), "Playlist");
 
         viewPager.setAdapter(viewPagerAdapter);
         tabLayout.setupWithViewPager(viewPager);

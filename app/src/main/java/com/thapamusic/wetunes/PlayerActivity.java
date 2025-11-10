@@ -15,12 +15,14 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
+import android.text.InputType;
 import android.util.Log;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
+import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.SeekBar;
 import android.widget.TextView;
@@ -39,6 +41,7 @@ import java.util.Random;
 import java.util.Locale;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
 import org.json.JSONException;
 
@@ -88,6 +91,46 @@ public class PlayerActivity extends AppCompatActivity implements ActionPlaying, 
         setupClickListeners();
         startMusicService();
 
+        // ----------------------------
+        // Playlist button setup
+        ImageView playlistBtn = findViewById(R.id.playlist_btn);
+        PlaylistManager playlistManager = new PlaylistManager(this);
+        playlistBtn.setOnClickListener(v -> {
+            Map<String, Set<String>> playlistsMap = playlistManager.getAllPlaylists();
+            ArrayList<String> existingPlaylists = new ArrayList<>(playlistsMap.keySet());
+            CharSequence[] items = existingPlaylists.toArray(new CharSequence[0]);
+
+            AlertDialog.Builder builder = new AlertDialog.Builder(this);
+            builder.setTitle("Chọn playlist hoặc tạo mới");
+            builder.setItems(items, (dialog, which) -> {
+                String selectedPlaylist = existingPlaylists.get(which);
+                playlistManager.addToPlaylist(selectedPlaylist, listSongs.get(position).getId());
+                Toast.makeText(this, "Đã thêm vào playlist " + selectedPlaylist, Toast.LENGTH_SHORT).show();
+            });
+
+            builder.setPositiveButton("Tạo mới", (dialog, which) -> {
+                AlertDialog.Builder inputBuilder = new AlertDialog.Builder(this);
+                inputBuilder.setTitle("Nhập tên playlist mới");
+
+                EditText input = new EditText(this);
+                input.setInputType(InputType.TYPE_CLASS_TEXT);
+                inputBuilder.setView(input);
+
+                inputBuilder.setPositiveButton("OK", (d, w) -> {
+                    String newPlaylist = input.getText().toString().trim();
+                    if (!newPlaylist.isEmpty()) {
+                        playlistManager.addToPlaylist(newPlaylist, listSongs.get(position).getId());
+                        Toast.makeText(this, "Đã tạo playlist " + newPlaylist, Toast.LENGTH_SHORT).show();
+                    }
+                });
+                inputBuilder.setNegativeButton("Hủy", null);
+                inputBuilder.show();
+            });
+
+            builder.setNegativeButton("Hủy", null);
+            builder.show();
+        });
+        // ----------------------------
         seekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
